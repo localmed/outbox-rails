@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Outbox::Rails::VERSION
   spec.authors       = ['Pete Browne']
   spec.email         = ['pete.browne@localmed.com']
-  spec.description   = %q{Rails Engine for sending email, SMS, and push notifications.}
-  spec.summary       = %q{Rails Engine for sending email, SMS, and push notifications.}
+  spec.description   = %q{Rails Railtie for sending email, SMS, and push notifications using the Outbox gem.}
+  spec.summary       = %q{Rails Railtie for sending email, SMS, and push notifications using the Outbox gem.}
   spec.homepage      = 'https://github.com/localmed/outbox-rails'
   spec.license       = 'MIT'
 
@@ -18,9 +18,13 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_runtime_dependency 'outbox', '~> 0.1.0'
+  spec.add_runtime_dependency 'outbox', '~> 0.1.1'
+  spec.add_runtime_dependency 'rails', '~> 4.0.0'
   spec.add_development_dependency 'bundler', '~> 1.3'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec'
+  spec.add_development_dependency 'rspec-rails'
   spec.add_development_dependency 'rspec_junit_formatter'
+  spec.add_development_dependency 'sqlite3'
+  spec.add_development_dependency 'combustion'
 end
