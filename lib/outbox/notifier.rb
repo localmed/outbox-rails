@@ -102,6 +102,6 @@ module Outbox
       super || @_message.respond_to?(method, include_private)
     end
 
-    ActiveSupport.run_load_hooks(:outbox, self)
+    ActiveSupport.run_load_hooks(:outbox_notifier, self)
   end
 end

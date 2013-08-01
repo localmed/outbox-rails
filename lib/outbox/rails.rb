@@ -8,4 +8,6 @@ module Outbox
 
   module Rails
   end
+
+  ActiveSupport.run_load_hooks(:outbox, self)
 end

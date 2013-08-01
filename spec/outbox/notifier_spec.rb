@@ -17,12 +17,6 @@ describe Outbox::Notifier do
     end
   end
 
-  describe '.logger' do
-    it 'defaults to Rails.logger' do
-      expect(BaseNotifier.logger).to be(Rails.logger)
-    end
-  end
-
   describe '.defaults' do
     it 'sets the default values' do
       message = BaseNotifier.welcome
