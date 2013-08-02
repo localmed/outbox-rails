@@ -59,6 +59,7 @@ module Outbox
     # #message object is retrieved.
     def render_message(options = {}, &block)
       @_message_rendered = true
+      @_message.email ||= Outbox::Messages::Email.new
 
       # Render an email using the #mail interface so we don't have
       # to rewrite the template logic. Even if we aren't sending an email
@@ -66,7 +67,7 @@ module Outbox
       email_options = options.extract! :content_type, :charset, :parts_order,
                                        :body, :template_name, :template_path
       email_options.merge!(options.delete(:email)) if options[:email]
-      email_options[:subject] ||= email.subject
+      email_options[:subject] ||= email.subject if email.subject
       email = render_email(email_options, &block)
 
       @_message.assign_message_type_values(options)
@@ -84,7 +85,7 @@ module Outbox
 
     def render_email(options, &block)
       outbox_message = @_message
-      @_message = outbox_message.email || Mail.new
+      @_message = outbox_message.email
       email = _render_email(options, &block)
       @_message = outbox_message
       email
