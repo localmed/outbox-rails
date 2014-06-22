@@ -4,7 +4,6 @@ module Outbox
   class Notifier < ActionMailer::Base
     abstract!
 
-    delegate :attachments, :headers, to: :email
     alias_method :_render_email, :mail
     undef :mail
 
@@ -73,6 +72,22 @@ module Outbox
       @_message.assign_message_type_values(options)
       assign_body_from_email(email)
       @_message
+    end
+
+    def headers(args = nil) # :nodoc:
+      # Make sure the email message instance exists
+      email({}) if email.nil?
+      if args
+        email.headers(args)
+      else
+        email
+      end
+    end
+
+    def attachments
+      # Make sure the email message instance exists
+      email({}) if email.nil?
+      email.attachments
     end
 
     protected

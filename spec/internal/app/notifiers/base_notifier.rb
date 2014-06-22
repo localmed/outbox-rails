@@ -1,6 +1,4 @@
 class BaseNotifier < Outbox::Notifier
-  defaults email: { from: 'noreply@myapp.com' }
-
   def welcome(hash = {})
     render_message(hash)
   end
@@ -14,5 +12,10 @@ class BaseNotifier < Outbox::Notifier
     email do
       subject 'Composed Message'
     end
+  end
+
+  def custom_headers
+    headers 'X-Custom-1' => 'foo'
+    headers['X-Custom-2'] = 'bar'
   end
 end
