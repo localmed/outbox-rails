@@ -19,7 +19,7 @@ describe Outbox::Notifier do
 
   describe '.defaults' do
     it 'sets the default values' do
-      message = BaseNotifier.welcome
+      message = CustomizedNotifier.with_defaults
       expect(message.email.from).to eq(['noreply@myapp.com'])
     end
   end
@@ -46,7 +46,6 @@ describe Outbox::Notifier do
   describe '#email' do
     it 'composes an email using Outbox interface' do
       message = BaseNotifier.composed_message_with_implicit_render
-      expect(message.email.from).to eq(['noreply@myapp.com'])
       expect(message.email.subject).to eq('Composed Message')
     end
   end
@@ -66,6 +65,37 @@ describe Outbox::Notifier do
       expect(part_1.body.encoded.strip).to eq('TEXT Implicit Multipart')
       expect(part_2.mime_type).to eq('text/html')
       expect(part_2.body.encoded.strip).to eq('HTML Implicit Multipart')
+    end
+
+    it 'handles attachments' do
+      message = BaseNotifier.implicit_multipart(attachments: true)
+      attachment = message.email.attachments.first
+      expect(attachment.mime_type).to eq('application/pdf')
+      expect(attachment.decoded.strip).to eq('This is test File content')
+    end
+
+    it 'handles custom headers' do
+      message = BaseNotifier.custom_headers
+      expect(message.email.header['X-Custom-1'].value).to eql('foo')
+      expect(message.email.header['X-Custom-2'].value).to eql('bar')
+    end
+
+    it 'handles implicit SMS templates' do
+      message = BaseNotifier.implicit_multipart
+      expect(message.sms.body.strip).to eq('TEXT Implicit Multipart')
+    end
+
+    it 'handles explicit SMS messages' do
+      message = BaseNotifier.explicit_sms_message(true)
+      expect(message.email).to be_nil
+      expect(message.sms.from).to eq('1234')
+      expect(message.sms.body).to eq('Explicit Message')
+    end
+
+    it 'raises template errors when sending emails' do
+      expect {
+        BaseNotifier.explicit_sms_message
+      }.to raise_error(ActionView::MissingTemplate)
     end
   end
 end
