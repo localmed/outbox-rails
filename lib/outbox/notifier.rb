@@ -2,25 +2,28 @@ require 'action_mailer'
 
 module Outbox
   class Notifier < ActionMailer::Base
+    extend Outbox::DefineInheritableMethod
+    include Outbox::NotifierTypes
+
     abstract!
 
     alias_method :_render_email, :mail
     undef :mail
 
     class << self
-      alias :defaults :default
+      alias_method :defaults, :default
 
       # Returns the name of current notifier. This method is also being used
       # as a path for a view lookup. If this is an anonymous notifier,
       # this method will return +anonymous+ instead.
       def notifier_name(value = nil)
         if value.nil?
-          self.mailer_name
+          mailer_name
         else
           self.mailer_name = value
         end
       end
-      alias :notifier_name= :notifier_name
+      alias_method :notifier_name=, :notifier_name
 
       protected
 
@@ -38,7 +41,7 @@ module Outbox
       # Make sure we don't ever get a NullMail object.
       @_mail_was_called = true
       @_message_rendered = false
-      @_message = Outbox::Message.new self.class.default_params.dup
+      @_message = build_message
       process(method_name, *args) if method_name
     end
 
@@ -58,16 +61,22 @@ module Outbox
     # #message object is retrieved.
     def render_message(options = {}, &block)
       @_message_rendered = true
-      @_message.email ||= Outbox::Messages::Email.new
+      if @_message.email
+        email = @_message.email
+        skip_email = false
+      else
+        email = Outbox::Messages::Email.new
+        skip_email = true
+      end
 
       # Render an email using the #mail interface so we don't have
       # to rewrite the template logic. Even if we aren't sending an email
       # we can still use the rendered templates in other messages types.
-      email_options = options.extract! :content_type, :charset, :parts_order,
-                                       :body, :template_name, :template_path
-      email_options.merge!(options.delete(:email)) if options[:email]
-      email_options[:subject] ||= email.subject if email.subject
-      email = render_email(email_options, &block)
+      begin
+        render_email(email, options, &block)
+      rescue ActionView::MissingTemplate => error
+        raise error unless skip_email
+      end
 
       @_message.assign_message_type_values(options)
       assign_body_from_email(email)
@@ -92,30 +101,40 @@ module Outbox
 
     protected
 
+    def build_message
+      message = Outbox::Message.new(self.class.default_params.dup)
+      Outbox::Message.message_types.each_key do |message_type|
+        message.public_send(message_type, {})
+      end
+      message
+    end
+
     def assign_body_from_email(email)
-      # TODO: Implement this later once we have multiple message types. This
-      # will extract the rendered body from the mail (preferring text/plain)
-      # and assign it to the other message types.
-    end
-
-    def render_email(options, &block)
-      outbox_message = @_message
-      @_message = outbox_message.email
-      email = _render_email(options, &block)
-      @_message = outbox_message
-      email
-    end
-
-    def method_missing(method, *args, &block)
-      if @_message.respond_to?(method)
-        @_message.public_send(method, *args, &block)
-      else
-        super
+      text_part = email.parts.find { |p| p.mime_type == 'text/plain' }
+      if text_part
+        @_message.each_message_type do |message_type, message|
+          next if message.nil? || message_type == :email
+          message.body = text_part.body.raw_source
+        end
       end
     end
 
-    def respond_to_missing?(method, include_private = false)
-      super || @_message.respond_to?(method, include_private)
+    def render_email(email, options, &block)
+      email_options = options.extract!(
+        :content_type, :charset, :parts_order,
+        :body, :template_name, :template_path
+      )
+      email_options.merge!(options.delete(:email)) if options[:email]
+      # ActionMailer will use the default i18n subject
+      # unless we explicitly set it on this options hash.
+      email_options[:subject] ||= email.subject if email.subject
+
+      outbox_message = @_message
+      @_message = email
+      _render_email(email_options, &block)
+    ensure
+      @_message = outbox_message
+      email
     end
 
     ActiveSupport.run_load_hooks(:outbox_notifier, self)

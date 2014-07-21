@@ -5,6 +5,7 @@ require 'active_support/rails'
 
 module Outbox
   autoload :Notifier, 'outbox/notifier'
+  autoload :NotifierTypes, 'outbox/notifier_types'
 
   module Rails
   end

@@ -4,7 +4,9 @@ class BaseNotifier < Outbox::Notifier
   end
 
   def implicit_multipart(hash = {})
-    attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
+    if hash.delete(:attachments)
+      attachments['invoice.pdf'] = 'This is test File content'
+    end
     render_message(hash)
   end
 
@@ -17,5 +19,13 @@ class BaseNotifier < Outbox::Notifier
   def custom_headers
     headers 'X-Custom-1' => 'foo'
     headers['X-Custom-2'] = 'bar'
+  end
+
+  def explicit_sms_message(skip_email = false)
+    skip_email! if skip_email
+    sms do
+      from '1234'
+      body 'Explicit Message'
+    end
   end
 end
