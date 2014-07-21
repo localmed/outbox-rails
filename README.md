@@ -45,6 +45,9 @@ class AccountNotifier < Outbox::Notifier
     end
 
     sms do
+      from '<shortcode_id>'
+      # The "text" template will automatically be used for the body of the SMS.
+      # But you can explicitly override by calling the #body method.
       body 'Welcome to our App!'
     end
 
@@ -58,9 +61,47 @@ end
 Send a message using the `deliver` method:
 
 ```ruby
-# Unlike ActionMailer, deliver takes a single argument that defines the recipients
+# Unlike ActionMailer, deliver takes an argument that defines the recipients
 # for the message types you want to send.
 AccountNotifier.welcome.deliver email: 'user@gmail.com', sms: '+15557654321'
+```
+
+Configuration
+-------------
+
+Configure Outbox using the `config.outbox` accessor during normal Rails
+configuration:
+
+``` ruby
+# config/application.rb
+module Blog
+  class Application < Rails::Application
+    # Configure defautl email fields
+    config.outbox.email_defaults = {
+      from: 'from@example.com'
+    }
+
+    # Setup default email settings.
+    config.outbox.default_email_client_settings = {
+      smtp_settings: {
+        address: 'smtp.gmail.com',
+        port: 587,
+        domain: 'example.com',
+        user_name: '<username>',
+        password: '<password>',
+        authentication: 'plain',
+        enable_starttls_auto: true
+      }
+    }
+  end
+end
+
+# config/environments/test.rb
+Blog::Application.configure do
+  # Always use test client during tests
+  config.outbox.use_test_client = true
+end
+
 ```
 
 Contributing

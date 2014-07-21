@@ -79,5 +79,23 @@ describe Outbox::Notifier do
       expect(message.email.header['X-Custom-1'].value).to eql('foo')
       expect(message.email.header['X-Custom-2'].value).to eql('bar')
     end
+
+    it 'handles implicit SMS templates' do
+      message = BaseNotifier.implicit_multipart
+      expect(message.sms.body.strip).to eq('TEXT Implicit Multipart')
+    end
+
+    it 'handles explicit SMS messages' do
+      message = BaseNotifier.explicit_sms_message(true)
+      expect(message.email).to be_nil
+      expect(message.sms.from).to eq('1234')
+      expect(message.sms.body).to eq('Explicit Message')
+    end
+
+    it 'raises template errors when sending emails' do
+      expect {
+        BaseNotifier.explicit_sms_message
+      }.to raise_error(ActionView::MissingTemplate)
+    end
   end
 end
