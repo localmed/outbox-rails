@@ -38,11 +38,16 @@ module Outbox
 
     def initialize(method_name = nil, *args) # :nodoc:
       super()
-      # Make sure we don't ever get a NullMail object.
-      @_mail_was_called = true
       @_message_rendered = false
       @_message = build_message
       process(method_name, *args) if method_name
+    end
+
+    def process(*args) # :nodoc:
+      original_message = @_message
+      super
+      # Make sure we don't ever get a NullMail object.
+      @_message = original_message
     end
 
     # The composed Outbox::Message instance.
