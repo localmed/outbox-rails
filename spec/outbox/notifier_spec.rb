@@ -104,6 +104,12 @@ describe Outbox::Notifier do
         expect(message.email.body.encoded.strip).to eql('Email Variant')
         expect(message.sms.body.strip).to eql('SMS Variant')
       end
+
+      it 'supports layout variants' do
+        message = BaseNotifier.implicit_variants('notification')
+        expect(message.email.body.encoded.strip).to eql('Email Layout: Email Variant')
+        expect(message.sms.body.strip).to eql('SMS Layout: SMS Variant')
+      end
     end
   end
 end
