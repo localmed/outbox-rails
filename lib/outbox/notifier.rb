@@ -124,8 +124,11 @@ module Outbox
       templates = find_message_type_templates(options)
       templates.each do |template|
         variants = (template.try(:variants) || []).compact
-        body = render(template: template)
-        assign_body(body, variants.empty? ? nil : variants)
+        if variants.empty?
+          assign_body(render(template: template))
+        else
+          assign_body(render(template: template, variants: variants), variants)
+        end
       end
     end
 

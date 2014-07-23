@@ -1,4 +1,6 @@
 class BaseNotifier < Outbox::Notifier
+  layout :set_layout
+
   def welcome(hash = {})
     render_message(hash)
   end
@@ -29,6 +31,13 @@ class BaseNotifier < Outbox::Notifier
     end
   end
 
-  def implicit_variants
+  def implicit_variants(layout = false)
+    @layout = layout
+  end
+
+  protected
+
+  def set_layout
+    @layout
   end
 end
