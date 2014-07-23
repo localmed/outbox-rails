@@ -97,5 +97,13 @@ describe Outbox::Notifier do
         BaseNotifier.explicit_sms_message
       }.to raise_error(ActionView::MissingTemplate)
     end
+
+    if Rails.version >= '4.1'
+      it 'supports implicit variants by message type' do
+        message = BaseNotifier.implicit_variants
+        expect(message.email.body.encoded.strip).to eql('Email Variant')
+        expect(message.sms.body.strip).to eql('SMS Variant')
+      end
+    end
   end
 end

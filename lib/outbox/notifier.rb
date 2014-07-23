@@ -66,25 +66,9 @@ module Outbox
     # #message object is retrieved.
     def render_message(options = {}, &block)
       @_message_rendered = true
-      if @_message.email
-        email = @_message.email
-        skip_email = false
-      else
-        email = Outbox::Messages::Email.new
-        skip_email = true
-      end
-
-      # Render an email using the #mail interface so we don't have
-      # to rewrite the template logic. Even if we aren't sending an email
-      # we can still use the rendered templates in other messages types.
-      begin
-        render_email(email, options, &block)
-      rescue ActionView::MissingTemplate => error
-        raise error unless skip_email
-      end
-
+      render_email(@_message.email, options, &block) if @_message.email
+      render_message_types(options)
       @_message.assign_message_type_values(options)
-      assign_body_from_email(email)
       @_message
     end
 
@@ -106,22 +90,16 @@ module Outbox
 
     protected
 
+    def details_for_lookup
+      { variants: message_types }
+    end
+
     def build_message
       message = Outbox::Message.new(self.class.default_params.dup)
       Outbox::Message.message_types.each_key do |message_type|
         message.public_send(message_type, {})
       end
       message
-    end
-
-    def assign_body_from_email(email)
-      text_part = email.parts.find { |p| p.mime_type == 'text/plain' }
-      if text_part
-        @_message.each_message_type do |message_type, message|
-          next if message.nil? || message_type == :email
-          message.body = text_part.body.raw_source
-        end
-      end
     end
 
     def render_email(email, options, &block)
@@ -140,6 +118,46 @@ module Outbox
     ensure
       @_message = outbox_message
       email
+    end
+
+    def render_message_types(options)
+      templates = find_message_type_templates(options)
+      templates.each do |template|
+        variants = (template.try(:variants) || []).compact
+        body = render(template: template)
+        assign_body(body, variants.empty? ? nil : variants)
+      end
+    end
+
+    def find_message_type_templates(options)
+      template_path = options[:template_path] || self.class.mailer_name
+      template_name = options[:template_name] || action_name
+      lookup_context.find_all(
+        template_name, Array(template_path), false, [],
+        formats: [:text],
+        variants: message_types_without_email
+      )
+    end
+
+    def assign_body(body, only_message_types = nil)
+      if only_message_types
+        only_message_types = only_message_types.map(&:to_sym)
+      else
+        only_message_types = message_types_without_email
+      end
+      @_message.each_message_type do |message_type, message|
+        if message && message.body.nil? && message_type.in?(only_message_types)
+          message.body = body
+        end
+      end
+    end
+
+    def message_types
+      Outbox::Message.message_types.keys
+    end
+
+    def message_types_without_email
+      message_types - [:email]
     end
 
     ActiveSupport.run_load_hooks(:outbox_notifier, self)

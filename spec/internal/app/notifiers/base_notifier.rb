@@ -28,4 +28,7 @@ class BaseNotifier < Outbox::Notifier
       body 'Explicit Message'
     end
   end
+
+  def implicit_variants
+  end
 end

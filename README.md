@@ -66,6 +66,22 @@ Send a message using the `deliver` method:
 AccountNotifier.welcome.deliver email: 'user@gmail.com', sms: '+15557654321'
 ```
 
+### Variants (New with Rails 4.1)
+
+You can have different templates for each message type using [variants](http://edgeguides.rubyonrails.org/4_1_release_notes.html#action-pack-variants). *Right now, only the implicit template rendering is supported.*
+
+``` html+ruby
+<!-- app/views/account_notifier/welcome.html+email.erb -->
+<h1>Welcome!</h1>
+
+<!-- app/views/account_notifier/welcome.text+email.erb -->
+Welcome! (email)
+
+<!-- app/views/account_notifier/welcome.text+sms.erb -->
+Welcome! (sms)
+```
+
+
 Configuration
 -------------
 
