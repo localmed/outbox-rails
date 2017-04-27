@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Outbox::Notifier do
   describe 'calling actions' do
     it 'does not raise error' do
-      expect{BaseNotifier.welcome}.not_to raise_error()
+      expect { BaseNotifier.welcome }.not_to raise_error
     end
 
     it 'returns an Outbox Message' do
@@ -59,12 +59,12 @@ describe Outbox::Notifier do
     it 'handles multipart templates' do
       message = BaseNotifier.implicit_multipart
       expect(message.email.parts.size).to eq(2)
-      part_1 = message.email.parts[0]
-      part_2 = message.email.parts[1]
-      expect(part_1.mime_type).to eq('text/plain')
-      expect(part_1.body.encoded.strip).to eq('TEXT Implicit Multipart')
-      expect(part_2.mime_type).to eq('text/html')
-      expect(part_2.body.encoded.strip).to eq('HTML Implicit Multipart')
+      part1 = message.email.parts[0]
+      part2 = message.email.parts[1]
+      expect(part1.mime_type).to eq('text/plain')
+      expect(part1.body.encoded.strip).to eq('TEXT Implicit Multipart')
+      expect(part2.mime_type).to eq('text/html')
+      expect(part2.body.encoded.strip).to eq('HTML Implicit Multipart')
     end
 
     it 'handles attachments' do
@@ -93,9 +93,9 @@ describe Outbox::Notifier do
     end
 
     it 'raises template errors when sending emails' do
-      expect {
+      expect do
         BaseNotifier.explicit_sms_message
-      }.to raise_error(ActionView::MissingTemplate)
+      end.to raise_error(ActionView::MissingTemplate)
     end
 
     if Rails.version >= '4.1'
