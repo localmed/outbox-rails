@@ -7,11 +7,11 @@ module Outbox
 
     abstract!
 
-    alias_method :_render_email, :mail
+    alias _render_email mail
     undef :mail
 
     class << self
-      alias_method :defaults, :default
+      alias defaults default
 
       # Returns the name of current notifier. This method is also being used
       # as a path for a view lookup. If this is an anonymous notifier,
@@ -23,10 +23,11 @@ module Outbox
           self.mailer_name = value
         end
       end
-      alias_method :notifier_name=, :notifier_name
+      alias notifier_name= notifier_name
 
       protected
 
+      # rubocop:disable Style/MethodMissing
       def method_missing(method_name, *args) # :nodoc:
         if respond_to?(method_name)
           new(method_name, *args).message
@@ -143,11 +144,11 @@ module Outbox
     end
 
     def assign_body(body, only_message_types = nil)
-      if only_message_types
-        only_message_types = only_message_types.map(&:to_sym)
-      else
-        only_message_types = message_types_without_email
-      end
+      only_message_types = if only_message_types
+                             only_message_types.map(&:to_sym)
+                           else
+                             message_types_without_email
+                           end
       @_message.each_message_type do |message_type, message|
         if message && message.body.nil? && message_type.in?(only_message_types)
           message.body = body
