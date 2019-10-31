@@ -104,10 +104,8 @@ module Outbox
     end
 
     def render_email(email, options, &block)
-      email_options = options.extract!(
-        :content_type, :charset, :parts_order,
-        :body, :template_name, :template_path
-      )
+      email_options_keys = %i[content_type charset parts_order body template_name template_path]
+      email_options = options.select { |key, _| email_options_keys.include? key }
       email_options.merge!(options.delete(:email)) if options[:email]
       # ActionMailer will use the default i18n subject
       # unless we explicitly set it on this options hash.
