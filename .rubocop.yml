@@ -1,25 +1,30 @@
 AllCops:
   Exclude:
-    - "vendor/**/*"
-    - "lib/generators/*/notifier/templates/*"
+    - 'gemfiles/**/*'
+    - 'vendor/**/*'
+    - 'lib/generators/*/notifier/templates/*'
   DisplayCopNames: true
   DisplayStyleGuide: true
 
-Style/Documentation:
-  Enabled: false
-
 Metrics/BlockLength:
   Exclude:
-    - "spec/**/*"
+    - 'spec/**/*'
 
 Metrics/ClassLength:
   Max: 150
 
 Metrics/LineLength:
   Exclude:
-    - "outbox-rails.gemspec"
+    - 'outbox-rails.gemspec'
   IgnoreCopDirectives: true
   Max: 100
 
 Metrics/MethodLength:
   Max: 15
+
+Style/Documentation:
+  Enabled: false
+
+Style/FileName:
+  Exclude:
+    - 'Appraisals'
