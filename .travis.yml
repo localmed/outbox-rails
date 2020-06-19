@@ -9,7 +9,8 @@ gemfile:
   - gemfiles/rails_5.1.gemfile
   - gemfiles/rails_5.2.gemfile
   - gemfiles/rails_6.0.gemfile
-script:
+before_install:
   - gem install bundler:2.1.4
+script:
   - bundle exec rubocop
   - bundle exec rspec
