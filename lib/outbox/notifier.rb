@@ -92,7 +92,7 @@ module Outbox
     protected
 
     def details_for_lookup
-      { variants: message_types }
+      { variants: [:email] }
     end
 
     def build_message
@@ -117,17 +117,6 @@ module Outbox
     ensure
       @_message = outbox_message
       email
-    end
-
-    # This is called by Action Mailers `#mail` method to render templates
-    # for the email. We override this to filter out templates that are explicitly
-    # not for emails to avoid rendering those multiple times.
-    def each_template(*args, &block)
-      templates = super(*args).select do |template|
-        variants = template_variants(template)
-        variants.empty? || variants == %w[email]
-      end
-      templates.each(&block)
     end
 
     def render_message_types(options)
@@ -175,7 +164,13 @@ module Outbox
     end
 
     def template_variants(template)
-      (template.try(:variants) || []).compact
+      if template.respond_to?(:variant)
+        [template.variant].compact
+      elsif template.respond_to?(:variants)
+        template.variants.compact
+      else
+        []
+      end
     end
 
     ActiveSupport.run_load_hooks(:outbox_notifier, self)

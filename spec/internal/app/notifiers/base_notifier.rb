@@ -35,7 +35,9 @@ class BaseNotifier < Outbox::Notifier
     @layout = layout
   end
 
-  def only_sms_template; end
+  def only_sms_template
+    skip_email!
+  end
 
   protected
 
