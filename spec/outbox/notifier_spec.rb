@@ -110,6 +110,14 @@ describe Outbox::Notifier do
         expect(message.email.body.encoded.strip).to eql('Email Layout: Email Variant')
         expect(message.sms.body.strip).to eql('SMS Layout: SMS Variant')
       end
+
+      it 'only renders the SMS template once', :focus do
+        notifier = BaseNotifier.new(:only_sms_template)
+        expect(notifier).to receive(:render).once.and_return('Only SMS')
+        message = notifier.message
+        expect(message.email.body.encoded).to_not be_present
+        expect(message.sms.body).to eql('Only SMS')
+      end
     end
   end
 end

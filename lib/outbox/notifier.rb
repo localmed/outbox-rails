@@ -119,10 +119,21 @@ module Outbox
       email
     end
 
+    # This is called by Action Mailers `#mail` method to render templates
+    # for the email. We override this to filter out templates that are explicitly
+    # not for emails to avoid rendering those multiple times.
+    def each_template(*args, &block)
+      templates = super(*args).select do |template|
+        variants = template_variants(template)
+        variants.empty? || variants == %w[email]
+      end
+      templates.each(&block)
+    end
+
     def render_message_types(options)
       templates = find_message_type_templates(options)
       templates.each do |template|
-        variants = (template.try(:variants) || []).compact
+        variants = template_variants(template)
         if variants.empty?
           assign_body(render(template: template))
         else
@@ -142,11 +153,12 @@ module Outbox
     end
 
     def assign_body(body, only_message_types = nil)
-      only_message_types = if only_message_types
-                             only_message_types.map(&:to_sym)
-                           else
-                             message_types_without_email
-                           end
+      only_message_types =
+        if only_message_types
+          only_message_types.map(&:to_sym)
+        else
+          message_types_without_email
+        end
       @_message.each_message_type do |message_type, message|
         if message && message.body.nil? && message_type.in?(only_message_types)
           message.body = body
@@ -160,6 +172,10 @@ module Outbox
 
     def message_types_without_email
       message_types - [:email]
+    end
+
+    def template_variants(template)
+      (template.try(:variants) || []).compact
     end
 
     ActiveSupport.run_load_hooks(:outbox_notifier, self)
