@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    outbox-rails (0.5.1)
+    outbox-rails (1.0.0)
       outbox (~> 0.2.0)
       rails (>= 5.0, < 7)
 
