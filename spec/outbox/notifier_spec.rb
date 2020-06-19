@@ -98,18 +98,24 @@ describe Outbox::Notifier do
       end.to raise_error(ActionView::MissingTemplate)
     end
 
-    if Rails.version >= '4.1'
-      it 'supports implicit variants by message type' do
-        message = BaseNotifier.implicit_variants
-        expect(message.email.body.encoded.strip).to eql('Email Variant')
-        expect(message.sms.body.strip).to eql('SMS Variant')
-      end
+    it 'supports implicit variants by message type' do
+      message = BaseNotifier.implicit_variants
+      expect(message.email.body.encoded.strip).to eql('Email Variant')
+      expect(message.sms.body.strip).to eql('SMS Variant')
+    end
 
-      it 'supports layout variants' do
-        message = BaseNotifier.implicit_variants('notification')
-        expect(message.email.body.encoded.strip).to eql('Email Layout: Email Variant')
-        expect(message.sms.body.strip).to eql('SMS Layout: SMS Variant')
-      end
+    it 'supports layout variants' do
+      message = BaseNotifier.implicit_variants('notification')
+      expect(message.email.body.encoded.strip).to eql('Email Layout: Email Variant')
+      expect(message.sms.body.strip).to eql('SMS Layout: SMS Variant')
+    end
+
+    it 'only renders the SMS template once', :focus do
+      notifier = BaseNotifier.new(:only_sms_template)
+      expect(notifier).to receive(:render).once.and_return('Only SMS')
+      message = notifier.message
+      expect(message.email).to_not be_present
+      expect(message.sms.body).to eql('Only SMS')
     end
   end
 end
