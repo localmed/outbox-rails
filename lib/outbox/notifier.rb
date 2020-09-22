@@ -12,7 +12,8 @@ module Outbox
     alias _render_email mail
     undef :mail
 
-    class_attribute :default_message_options, default: {}
+    class_attribute :default_message_options
+    self.default_message_options = {}
 
     class << self
       # Sets the default options for a message for this Notifier and its descendants.
