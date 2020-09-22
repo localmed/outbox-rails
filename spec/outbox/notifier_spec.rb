@@ -20,7 +20,7 @@ describe Outbox::Notifier do
   end
 
   describe '.defaults' do
-    it 'sets the default values', focus: true do
+    it 'sets the default values' do
       message = CustomizedNotifier.with_defaults
       expect(message.email.from).to eq(['noreply@myapp.com'])
       expect(message.sms.from).to eq('+12255551234')
