@@ -12,8 +12,20 @@ module Outbox
     alias _render_email mail
     undef :mail
 
+    class_attribute :default_message_options, default: {}
+
     class << self
-      alias defaults default
+      # Sets the default options for a message for this Notifier and its descendants.
+      # This is similar to ActionMailer's `default` method, but allows you to
+      # set options for multiple message types at once:
+      #
+      #     class UsersNotifier < OutboxNotifier
+      #       defaults email: { from: 'noreply@myapp.com' }, sms: { from: '+12255551234' }
+      #     end
+      def defaults(value = nil)
+        self.default_message_options = default_message_options.merge(value).freeze if value
+        default_message_options
+      end
 
       # Returns the name of current notifier. This method is also being used
       # as a path for a view lookup. If this is an anonymous notifier,
@@ -99,7 +111,7 @@ module Outbox
     end
 
     def build_message
-      message = Outbox::Message.new(self.class.default_params.dup)
+      message = Outbox::Message.new(self.class.default_message_options.dup)
       Outbox::Message.message_types.each_key do |message_type|
         message.public_send(message_type, {})
       end
@@ -154,14 +166,6 @@ module Outbox
       @_message.each_message_type do |message_type, message|
         message.body = body if message && message.body.nil? && message_type.in?(only_message_types)
       end
-    end
-
-    def apply_defaults(headers)
-      headers_with_defaults = super(headers)
-      message_types.each do |message_type|
-        headers_with_defaults.delete(message_type)
-      end
-      headers_with_defaults
     end
 
     def message_types
