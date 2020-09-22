@@ -5,6 +5,13 @@ AllCops:
     - 'lib/generators/*/notifier/templates/*'
   DisplayCopNames: true
   DisplayStyleGuide: true
+  NewCops: enable
+
+Layout/LineLength:
+  Exclude:
+    - 'outbox-rails.gemspec'
+  IgnoreCopDirectives: true
+  Max: 100
 
 Metrics/BlockLength:
   Exclude:
@@ -13,18 +20,13 @@ Metrics/BlockLength:
 Metrics/ClassLength:
   Max: 150
 
-Metrics/LineLength:
-  Exclude:
-    - 'outbox-rails.gemspec'
-  IgnoreCopDirectives: true
-  Max: 100
-
 Metrics/MethodLength:
   Max: 15
 
-Style/Documentation:
-  Enabled: false
-
-Style/FileName:
+Naming/FileName:
   Exclude:
     - 'Appraisals'
+    - 'lib/outbox-rails.rb'
+
+Style/Documentation:
+  Enabled: false

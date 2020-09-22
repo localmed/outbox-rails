@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'action_mailer'
 
 module Outbox
@@ -27,7 +29,7 @@ module Outbox
 
       protected
 
-      # rubocop:disable Style/MethodMissing
+      # rubocop:disable Style/MissingRespondToMissing
       def method_missing(method_name, *args) # :nodoc:
         if respond_to?(method_name)
           new(method_name, *args).message
@@ -35,6 +37,7 @@ module Outbox
           super
         end
       end
+      # rubocop:enable Style/MissingRespondToMissing
     end
 
     def initialize(method_name = nil, *args) # :nodoc:
@@ -149,10 +152,16 @@ module Outbox
           message_types_without_email
         end
       @_message.each_message_type do |message_type, message|
-        if message && message.body.nil? && message_type.in?(only_message_types)
-          message.body = body
-        end
+        message.body = body if message && message.body.nil? && message_type.in?(only_message_types)
       end
+    end
+
+    def apply_defaults(headers)
+      headers_with_defaults = super(headers)
+      message_types.each do |message_type|
+        headers_with_defaults.delete(message_type)
+      end
+      headers_with_defaults
     end
 
     def message_types

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Outbox::Notifier do
@@ -18,9 +20,11 @@ describe Outbox::Notifier do
   end
 
   describe '.defaults' do
-    it 'sets the default values' do
+    it 'sets the default values', focus: true do
       message = CustomizedNotifier.with_defaults
       expect(message.email.from).to eq(['noreply@myapp.com'])
+      expect(message.email['email']).to be_nil
+      expect(message.email['sms']).to be_nil
     end
   end
 
