@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'outbox'
 require 'outbox/rails/version'
 require 'outbox/rails/railtie'

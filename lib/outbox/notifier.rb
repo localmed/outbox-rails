@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'action_mailer'
 
 module Outbox
@@ -10,8 +12,21 @@ module Outbox
     alias _render_email mail
     undef :mail
 
+    class_attribute :default_message_options
+    self.default_message_options = {}
+
     class << self
-      alias defaults default
+      # Sets the default options for a message for this Notifier and its descendants.
+      # This is similar to ActionMailer's `default` method, but allows you to
+      # set options for multiple message types at once:
+      #
+      #     class UsersNotifier < OutboxNotifier
+      #       defaults email: { from: 'noreply@myapp.com' }, sms: { from: '+12255551234' }
+      #     end
+      def defaults(value = nil)
+        self.default_message_options = default_message_options.merge(value).freeze if value
+        default_message_options
+      end
 
       # Returns the name of current notifier. This method is also being used
       # as a path for a view lookup. If this is an anonymous notifier,
@@ -27,7 +42,7 @@ module Outbox
 
       protected
 
-      # rubocop:disable Style/MethodMissing
+      # rubocop:disable Style/MissingRespondToMissing
       def method_missing(method_name, *args) # :nodoc:
         if respond_to?(method_name)
           new(method_name, *args).message
@@ -35,6 +50,7 @@ module Outbox
           super
         end
       end
+      # rubocop:enable Style/MissingRespondToMissing
     end
 
     def initialize(method_name = nil, *args) # :nodoc:
@@ -96,7 +112,7 @@ module Outbox
     end
 
     def build_message
-      message = Outbox::Message.new(self.class.default_params.dup)
+      message = Outbox::Message.new(self.class.default_message_options.dup)
       Outbox::Message.message_types.each_key do |message_type|
         message.public_send(message_type, {})
       end
@@ -149,9 +165,7 @@ module Outbox
           message_types_without_email
         end
       @_message.each_message_type do |message_type, message|
-        if message && message.body.nil? && message_type.in?(only_message_types)
-          message.body = body
-        end
+        message.body = body if message && message.body.nil? && message_type.in?(only_message_types)
       end
     end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class BaseNotifier < Outbox::Notifier
   layout :set_layout
 
@@ -6,9 +8,7 @@ class BaseNotifier < Outbox::Notifier
   end
 
   def implicit_multipart(hash = {})
-    if hash.delete(:attachments)
-      attachments['invoice.pdf'] = 'This is test File content'
-    end
+    attachments['invoice.pdf'] = 'This is test File content' if hash.delete(:attachments)
     render_message(hash)
   end
 

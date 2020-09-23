@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 describe Outbox::Notifier do
@@ -21,6 +23,9 @@ describe Outbox::Notifier do
     it 'sets the default values' do
       message = CustomizedNotifier.with_defaults
       expect(message.email.from).to eq(['noreply@myapp.com'])
+      expect(message.sms.from).to eq('+12255551234')
+      expect(message.email['email']).to be_nil
+      expect(message.email['sms']).to be_nil
     end
   end
 
@@ -110,7 +115,7 @@ describe Outbox::Notifier do
       expect(message.sms.body.strip).to eql('SMS Layout: SMS Variant')
     end
 
-    it 'only renders the SMS template once', :focus do
+    it 'only renders the SMS template once' do
       notifier = BaseNotifier.new(:only_sms_template)
       expect(notifier).to receive(:render).once.and_return('Only SMS')
       message = notifier.message
